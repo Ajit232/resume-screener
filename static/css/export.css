@@ -1,0 +1,133 @@
+/* ============================================================
+   ResumeAI — Export Feature Styles (optimized UI version)
+   ============================================================ */
+
+/* --- Filename preview badge (also defined in main.css, kept in sync) --- */
+.filename-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.22rem 0.7rem;
+  background: #eef2ff;
+  color: #4361ee;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #c7d2fe;
+  animation: fadeSlideIn 0.2s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Export spinner (used on save/export buttons) --- */
+.export-spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn.loading .export-spinner { display: inline-block; }
+.btn.loading .btn-text        { display: none; }
+.btn.loading                  { cursor: not-allowed; opacity: 0.8; }
+
+/* --- Toast container --- */
+.export-toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  max-width: 340px;
+}
+
+/* --- LaTeX preview code block --- */
+.latex-preview {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.78rem;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 1rem;
+  max-height: 360px;
+  overflow-y: auto;
+  white-space: pre;
+  line-height: 1.6;
+}
+
+/* --- ATS print toolbar --- */
+.print-toolbar {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* --- Export info box (result page) --- */
+.export-info-box {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  color: #0369a1;
+}
+
+/* --- Role selector focus glow --- */
+#id_role_hint:focus {
+  border-color: #4361ee;
+  box-shadow: 0 0 0 3px rgba(67,97,238,.12);
+}
+
+/* --- Quick export button group in sidebar --- */
+.quick-export-btn {
+  text-align: left;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-export-btn:hover {
+  transform: translateX(2px);
+}
+
+/* --- Dropdown badge inside dropdown-item --- */
+.dropdown-item .badge {
+  font-size: 0.65rem;
+  vertical-align: middle;
+}
+
+/* --- ATS export page toolbar buttons --- */
+.ats-toolbar-btn {
+  background: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: background 0.15s;
+}
+
+.ats-toolbar-btn:hover { background: #e8f0fe; }
+.ats-toolbar-btn.close-btn { background: #fee2e2; color: #842029; }
+.ats-toolbar-btn.close-btn:hover { background: #fecaca; }
+
+/* --- Responsive tweaks --- */
+@media (max-width: 576px) {
+  .export-toast-container {
+    right: 0.75rem;
+    left: 0.75rem;
+    max-width: 100%;
+  }
+}

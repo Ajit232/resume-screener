@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block title %}{{ resume.title }} — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1" style="font-size:1.5rem;">{{ resume.title }}</h2>
+    <p class="text-muted small mb-0">
+      Version {{ resume.version }}
+      {% if resume.is_optimized %}
+        <span class="badge ms-1" style="background:#d1fae5;color:#065f46;">Optimised</span>
+      {% endif %}
+      &mdash; {{ resume.word_count }} words &mdash; {{ resume.created_at|date:"M d, Y" }}
+    </p>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'resumes:editor' resume.pk %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <a href="{% url 'analysis:run' %}?resume={{ resume.pk }}" class="btn btn-sm btn-primary">
+      <i class="bi bi-play-circle me-1"></i>Run Analysis
+    </a>
+
+    <!-- Export dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-success dropdown-toggle" type="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-download me-1"></i>Export
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><h6 class="dropdown-header">PDF Formats</h6></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_ats' resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-check me-2 text-success"></i>
+            ATS-Friendly PDF
+            <span class="badge ms-1" style="background:#d1fae5;color:#065f46;font-size:0.68rem;">Recommended</span>
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_styled' resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-richtext me-2 text-primary"></i>
+            Styled PDF
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li><h6 class="dropdown-header">LaTeX / Overleaf</h6></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_latex' resume.pk %}">
+            <i class="bi bi-file-earmark-code me-2 text-warning"></i>
+            Download .tex File
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="https://www.overleaf.com/latex/templates"
+             target="_blank" rel="noopener">
+            <i class="bi bi-box-arrow-up-right me-2 text-muted"></i>
+            Browse Overleaf Templates
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <form method="post" action="{% url 'resumes:delete' resume.pk %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger"
+              data-confirm="Delete this resume?">
+        <i class="bi bi-trash"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if not resume.raw_text %}
+<div class="alert alert-warning d-flex gap-2 align-items-center py-2 mb-3">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <span class="small">No content yet — exports will be empty.
+    <a href="{% url 'resumes:editor' resume.pk %}">Add content in the editor</a> first.
+  </span>
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+  <!-- Sidebar -->
+  <div class="col-md-4">
+
+    <!-- Info card -->
+    <div class="card border-0 mb-3">
+      <div class="card-body">
+        <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+          Resume Info
+        </h6>
+        <dl class="mb-0" style="font-size:0.85rem;">
+          <dt class="text-muted small">Version</dt>
+          <dd class="mb-2">v{{ resume.version }}</dd>
+          <dt class="text-muted small">Word Count</dt>
+          <dd class="mb-2">{{ resume.word_count }} words</dd>
+          <dt class="text-muted small">Status</dt>
+          <dd class="mb-2">
+            {% if resume.is_optimized %}
+              <span class="badge" style="background:#d1fae5;color:#065f46;">Optimised</span>
+            {% else %}
+              <span class="badge" style="background:#f3f4f6;color:#6b7280;">Original</span>
+            {% endif %}
+          </dd>
+          <dt class="text-muted small">Uploaded</dt>
+          <dd class="mb-0">{{ resume.created_at|date:"M d, Y" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Version history -->
+    {% if versions %}
+    <div class="card border-0 mb-3">
+      <div class="card-body">
+        <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+          Versions
+        </h6>
+        {% for v in versions %}
+        <a href="{% url 'resumes:detail' v.pk %}"
+           class="d-flex align-items-center gap-2 text-decoration-none mb-2 p-2 rounded"
+           style="{% if v.pk == resume.pk %}background:#eef2ff;{% endif %}transition:background .15s;">
+          <i class="bi bi-file-earmark-text" style="color:#4361ee;font-size:0.85rem;"></i>
+          <span style="font-size:0.83rem;{% if v.pk == resume.pk %}font-weight:700;color:#4361ee;{% else %}color:#374151;{% endif %}">
+            v{{ v.version }}
+          </span>
+          {% if v.is_optimized %}
+            <span class="badge ms-auto" style="background:#d1fae5;color:#065f46;font-size:0.65rem;">AI</span>
+          {% endif %}
+          <span class="text-muted ms-auto" style="font-size:0.72rem;">{{ v.created_at|date:"M d" }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Export quick links -->
+    <div class="card border-0">
+      <div class="card-body p-3">
+        <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+          <i class="bi bi-download me-1"></i>Quick Export
+        </h6>
+        <div class="d-grid gap-2">
+          <a href="{% url 'resumes:export_ats' resume.pk %}" target="_blank"
+             class="btn btn-sm btn-outline-success text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-check"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">ATS-Friendly PDF</div>
+              <div style="font-size:0.72rem;opacity:.7;">Best for job applications</div>
+            </div>
+          </a>
+          <a href="{% url 'resumes:export_styled' resume.pk %}" target="_blank"
+             class="btn btn-sm btn-outline-primary text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-richtext"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">Styled PDF</div>
+              <div style="font-size:0.72rem;opacity:.7;">Visual layout</div>
+            </div>
+          </a>
+          <a href="{% url 'resumes:export_latex' resume.pk %}"
+             class="btn btn-sm btn-outline-warning text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-code"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">Download .tex</div>
+              <div style="font-size:0.72rem;opacity:.7;">Overleaf compatible</div>
+            </div>
+          </a>
+        </div>
+        <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          PDF: open link → Print → Save as PDF
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Resume content -->
+  <div class="col-md-8">
+    <div class="card border-0">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold text-uppercase mb-0" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+            Resume Content
+          </h6>
+          <a href="{% url 'resumes:editor' resume.pk %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </a>
+        </div>
+        {% if resume.raw_text %}
+        <div class="rounded p-3"
+             style="white-space:pre-wrap;max-height:580px;overflow-y:auto;
+                    font-size:0.85rem;line-height:1.7;font-family:'Courier New',monospace;
+                    background:#fafbff;border:1px solid #e9ecef;">{{ resume.raw_text }}</div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-file-earmark-x text-muted" style="font-size:2.5rem;opacity:.35;"></i>
+          <p class="text-muted mt-3 mb-3 small">No text content extracted yet.</p>
+          <a href="{% url 'resumes:editor' resume.pk %}" class="btn btn-primary btn-sm px-4">
+            Add Content Manually
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}ResumeAI Screener — Match Your Resume to Any Job{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="hero-gradient text-center mb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="mb-3">
+        <span style="background:linear-gradient(135deg,#4361ee,#3a0ca3);border-radius:20px;width:72px;height:72px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(67,97,238,.3);">
+          <i class="bi bi-file-earmark-person-fill text-white" style="font-size:2rem;"></i>
+        </span>
+      </div>
+      <h1 class="fw-bold mb-3" style="font-size:2.4rem;letter-spacing:-0.5px;line-height:1.2;">
+        AI-Powered Resume Screener
+      </h1>
+      <p class="text-muted mb-4" style="font-size:1.05rem;max-width:560px;margin:0 auto 1.5rem;">
+        Get an instant match score, find skill gaps, and receive tailored
+        improvement suggestions — all processed locally using NLP.
+      </p>
+      {% if user.is_authenticated %}
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="{% url 'analysis:run' %}" class="btn btn-primary btn-lg px-5">
+          <i class="bi bi-play-circle me-2"></i>Start New Analysis
+        </a>
+        <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary btn-lg px-4">
+          <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+      </div>
+      {% else %}
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg px-5">
+          <i class="bi bi-person-plus me-2"></i>Get Started Free
+        </a>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg px-4">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Login
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Feature Cards -->
+<div class="row g-4 mb-5">
+  <div class="col-md-4">
+    <div class="card h-100 border-0 text-center p-2">
+      <div class="card-body">
+        <div class="mb-3" style="width:56px;height:56px;border-radius:16px;background:#eef2ff;display:inline-flex;align-items:center;justify-content:center;">
+          <i class="bi bi-bar-chart-fill text-primary" style="font-size:1.4rem;"></i>
+        </div>
+        <h6 class="fw-bold mb-2">Weighted Match Score</h6>
+        <p class="text-muted small mb-0">
+          Skill match (40%), keyword overlap (25%), experience (20%),
+          and education (15%) — all in one transparent score.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 border-0 text-center p-2">
+      <div class="card-body">
+        <div class="mb-3" style="width:56px;height:56px;border-radius:16px;background:#f0fdf4;display:inline-flex;align-items:center;justify-content:center;">
+          <i class="bi bi-search text-success" style="font-size:1.4rem;"></i>
+        </div>
+        <h6 class="fw-bold mb-2">Skill Gap Analysis</h6>
+        <p class="text-muted small mb-0">
+          See exactly which skills from the job description are missing
+          from your resume and how to add them effectively.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 border-0 text-center p-2">
+      <div class="card-body">
+        <div class="mb-3" style="width:56px;height:56px;border-radius:16px;background:#fffbeb;display:inline-flex;align-items:center;justify-content:center;">
+          <i class="bi bi-file-earmark-check text-warning" style="font-size:1.4rem;"></i>
+        </div>
+        <h6 class="fw-bold mb-2">ATS Export</h6>
+        <p class="text-muted small mb-0">
+          Export your resume as ATS-friendly PDF, styled PDF, or
+          Overleaf-compatible LaTeX — all from one place.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="card border-0 mb-4">
+  <div class="card-body p-4">
+    <div class="text-center mb-4">
+      <h4 class="fw-bold mb-1">How It Works</h4>
+      <p class="text-muted small">Four steps from upload to actionable insights</p>
+    </div>
+    <div class="row text-center g-3">
+      {% for num, title, desc, icon in steps_data %}
+      {% endfor %}
+      <div class="col-md-3">
+        <div class="step-circle">1</div>
+        <h6 class="fw-semibold mb-1">Upload JD</h6>
+        <p class="text-muted small mb-0">Paste or upload the job description. Leave the name blank — it auto-generates.</p>
+      </div>
+      <div class="col-md-3">
+        <div class="step-circle">2</div>
+        <h6 class="fw-semibold mb-1">Upload Resume</h6>
+        <p class="text-muted small mb-0">Upload your PDF or DOCX. Auto-named by detected role like <code>pythonresume01</code>.</p>
+      </div>
+      <div class="col-md-3">
+        <div class="step-circle">3</div>
+        <h6 class="fw-semibold mb-1">Run Analysis</h6>
+        <p class="text-muted small mb-0">spaCy extracts skills, scoring engine computes all four components.</p>
+      </div>
+      <div class="col-md-3">
+        <div class="step-circle">4</div>
+        <h6 class="fw-semibold mb-1">Export &amp; Improve</h6>
+        <p class="text-muted small mb-0">Get suggestions, optimise your resume, export ATS PDF or LaTeX.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

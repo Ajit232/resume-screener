@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Run Analysis — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="page-header mb-4">
+      <div class="page-header-icon">
+        <i class="bi bi-cpu-fill"></i>
+      </div>
+      <div>
+        <h2 class="fw-bold mb-0" style="font-size:1.5rem;">Run Analysis</h2>
+        <p class="text-muted small mb-0">Select a resume and job description to compare</p>
+      </div>
+    </div>
+
+    <div class="card border-0">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <!-- Resume -->
+          <div class="mb-4">
+            <label class="form-label">
+              <i class="bi bi-file-earmark-person me-2" style="color:#4361ee;"></i>
+              Select Resume
+            </label>
+            {{ form.resume }}
+            {% if form.resume.errors %}
+              <div class="text-danger small mt-1">{{ form.resume.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text">
+              Don't have one?
+              <a href="{% url 'resumes:upload' %}">Upload a resume first</a>
+            </div>
+          </div>
+
+          <!-- JD -->
+          <div class="mb-4">
+            <label class="form-label">
+              <i class="bi bi-briefcase me-2" style="color:#4361ee;"></i>
+              Select Job Description
+            </label>
+            {{ form.job_description }}
+            {% if form.job_description.errors %}
+              <div class="text-danger small mt-1">{{ form.job_description.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text">
+              Don't have one?
+              <a href="{% url 'jobs:upload' %}">Add a job description first</a>
+            </div>
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>
+          {% endif %}
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg" id="runBtn">
+              <i class="bi bi-play-circle me-2 btn-text"></i>
+              <span class="btn-text">Run Analysis Now</span>
+              <span class="export-spinner"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scoring info -->
+    <div class="card border-0 mt-3" style="background:#f5f7ff;">
+      <div class="card-body p-3">
+        <h6 class="fw-semibold mb-3" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;">
+          <i class="bi bi-info-circle me-2" style="color:#4361ee;"></i>Scoring Components
+        </h6>
+        <div class="row g-2">
+          {% for label, weight, color in scoring_info %}{% endfor %}
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#4361ee,#7c3aed);flex-shrink:0;"></div>
+              <span style="font-size:0.82rem;">Skill Match <strong>40%</strong></span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#4895ef);flex-shrink:0;"></div>
+              <span style="font-size:0.82rem;">Keyword Match <strong>25%</strong></span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#f8b400,#f77f00);flex-shrink:0;"></div>
+              <span style="font-size:0.82rem;">Experience <strong>20%</strong></span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#2dc653,#06d6a0);flex-shrink:0;"></div>
+              <span style="font-size:0.82rem;">Education <strong>15%</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('runBtn').closest('form').addEventListener('submit', function() {
+  var btn = document.getElementById('runBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+});
+</script>
+{% endblock %}

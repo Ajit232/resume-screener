@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ResumeAI{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1" style="font-size:1.6rem;">
+      Welcome back, {{ request.user.username }} 👋
+    </h2>
+    <p class="text-muted small mb-0">Here's your screening overview</p>
+  </div>
+  <a href="{% url 'analysis:run' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-2"></i>New Analysis
+  </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 stat-card primary h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#eef2ff;">
+          <i class="bi bi-bar-chart-fill" style="color:#4361ee;"></i>
+        </div>
+        <div>
+          <div class="stat-number" style="color:#4361ee;">{{ analysis_count }}</div>
+          <div class="stat-label">Analyses Run</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 stat-card success h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#f0fdf4;">
+          <i class="bi bi-file-earmark-person-fill" style="color:#2dc653;"></i>
+        </div>
+        <div>
+          <div class="stat-number" style="color:#2dc653;">{{ resume_count }}</div>
+          <div class="stat-label">Resumes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 stat-card warning h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fffbeb;">
+          <i class="bi bi-briefcase-fill" style="color:#f8b400;"></i>
+        </div>
+        <div>
+          <div class="stat-number" style="color:#f8b400;">{{ jd_count }}</div>
+          <div class="stat-label">Job Descriptions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card border-0 stat-card info h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#f0f9ff;">
+          <i class="bi bi-trophy-fill" style="color:#4cc9f0;"></i>
+        </div>
+        <div>
+          <div class="stat-number" style="color:#4cc9f0;">
+            {% if top_score %}{{ top_score|floatformat:0 }}%{% else %}—{% endif %}
+          </div>
+          <div class="stat-label">Top Score</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card border-0 mb-4">
+  <div class="card-body py-3 d-flex align-items-center gap-3 flex-wrap">
+    <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.5px;white-space:nowrap;">Quick Actions</span>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'resumes:upload' %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-upload me-1"></i>Upload Resume
+      </a>
+      <a href="{% url 'jobs:upload' %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-briefcase me-1"></i>Add Job Description
+      </a>
+      <a href="{% url 'analysis:run' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-cpu me-1"></i>Run Analysis
+      </a>
+      <a href="{% url 'analysis:history' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-clock-history me-1"></i>View History
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Recent Analyses -->
+  <div class="col-lg-8">
+    <div class="card border-0 h-100">
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0">Recent Analyses</h6>
+          <a href="{% url 'analysis:history' %}" class="btn btn-sm btn-outline-primary">
+            View All
+          </a>
+        </div>
+        {% if analyses %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Resume</th>
+                <th>Job</th>
+                <th>Score</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for analysis in analyses %}
+              <tr>
+                <td>
+                  <span class="fw-semibold" style="font-size:0.85rem;">{{ analysis.resume.title|truncatechars:28 }}</span>
+                  <span class="text-muted d-block" style="font-size:0.75rem;">v{{ analysis.resume.version }}</span>
+                </td>
+                <td style="font-size:0.85rem;">{{ analysis.job_description.title|truncatechars:28 }}</td>
+                <td>
+                  {% with score=analysis.final_score %}
+                  <span class="badge px-3 py-2"
+                    style="font-size:0.8rem;
+                      {% if score >= 80 %}background:#d1fae5;color:#065f46;
+                      {% elif score >= 60 %}background:#dbeafe;color:#1e40af;
+                      {% elif score >= 40 %}background:#fef3c7;color:#92400e;
+                      {% else %}background:#fee2e2;color:#991b1b;{% endif %}">
+                    {{ score|floatformat:0 }}%
+                  </span>
+                  {% endwith %}
+                </td>
+                <td class="text-muted" style="font-size:0.8rem;">{{ analysis.created_at|date:"M d" }}</td>
+                <td>
+                  <a href="{% url 'analysis:result' analysis.pk %}"
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-bar-chart text-muted" style="font-size:2.5rem;opacity:.4;"></i>
+          <p class="text-muted mt-3 mb-3 small">No analyses yet. Upload a resume and JD to get started.</p>
+          <a href="{% url 'analysis:run' %}" class="btn btn-primary btn-sm px-4">
+            <i class="bi bi-plus-circle me-2"></i>Run First Analysis
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+
+    <!-- My Resumes -->
+    <div class="card border-0 mb-3">
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+          <h6 class="fw-bold mb-0 small text-uppercase" style="letter-spacing:.5px;">My Resumes</h6>
+          <a href="{% url 'resumes:upload' %}" class="btn btn-sm btn-outline-success" style="width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;">
+            <i class="bi bi-plus"></i>
+          </a>
+        </div>
+        <div class="list-group list-group-flush rounded-bottom">
+          {% for resume in resumes %}
+          <a href="{% url 'resumes:detail' resume.pk %}"
+             class="list-group-item list-group-item-action py-2 px-3 d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold text-truncate" style="max-width:170px;font-size:0.83rem;">
+                {{ resume.title }}
+              </div>
+              <div class="text-muted" style="font-size:0.73rem;">
+                {{ resume.word_count }} words &middot; {{ resume.created_at|date:"M d" }}
+              </div>
+            </div>
+            <span class="badge" style="background:#eef2ff;color:#4361ee;font-size:0.7rem;">v{{ resume.version }}</span>
+          </a>
+          {% empty %}
+          <div class="text-center text-muted small py-3">
+            No resumes yet. <a href="{% url 'resumes:upload' %}">Upload one</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Descriptions -->
+    <div class="card border-0">
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+          <h6 class="fw-bold mb-0 small text-uppercase" style="letter-spacing:.5px;">Job Descriptions</h6>
+          <a href="{% url 'jobs:upload' %}" class="btn btn-sm btn-outline-warning" style="width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;">
+            <i class="bi bi-plus"></i>
+          </a>
+        </div>
+        <div class="list-group list-group-flush rounded-bottom">
+          {% for jd in jds %}
+          <a href="{% url 'jobs:detail' jd.pk %}"
+             class="list-group-item list-group-item-action py-2 px-3">
+            <div class="fw-semibold text-truncate" style="max-width:200px;font-size:0.83rem;">
+              {{ jd.title }}
+            </div>
+            <div class="text-muted" style="font-size:0.73rem;">
+              {% if jd.company %}{{ jd.company }} &middot; {% endif %}
+              {{ jd.parsed_skills|length }} skills
+            </div>
+          </a>
+          {% empty %}
+          <div class="text-center text-muted small py-3">
+            No JDs yet. <a href="{% url 'jobs:upload' %}">Add one</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

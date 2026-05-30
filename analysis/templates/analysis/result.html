@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block title %}Analysis Result — ResumeAI{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1" style="font-size:1.5rem;">Analysis Result</h2>
+    <p class="text-muted small mb-0">
+      <i class="bi bi-file-earmark-person me-1"></i>
+      <a href="{% url 'resumes:detail' result.resume.pk %}" class="text-decoration-none">{{ result.resume.title }}</a>
+      <span class="mx-2 text-muted">&rarr;</span>
+      <i class="bi bi-briefcase me-1"></i>
+      <a href="{% url 'jobs:detail' result.job_description.pk %}" class="text-decoration-none">{{ result.job_description.title }}</a>
+    </p>
+    <p class="text-muted" style="font-size:0.78rem;">{{ result.created_at|date:"M d, Y H:i" }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'analysis:run' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-arrow-repeat me-1"></i>New Analysis
+    </a>
+    <a href="{% url 'analysis:history' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-clock-history me-1"></i>History
+    </a>
+    <!-- Export resume from result page -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-success dropdown-toggle" type="button"
+              data-bs-toggle="dropdown">
+        <i class="bi bi-download me-1"></i>Export Resume
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_ats' result.resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-check me-2 text-success"></i>ATS-Friendly PDF
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_styled' result.resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-richtext me-2 text-primary"></i>Styled PDF
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_latex' result.resume.pk %}">
+            <i class="bi bi-file-earmark-code me-2 text-warning"></i>Download .tex
+          </a>
+        </li>
+      </ul>
+    </div>
+    <form method="post" action="{% url 'analysis:delete' result.pk %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger"
+              data-confirm="Delete this analysis?">
+        <i class="bi bi-trash"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Score Overview -->
+<div class="row g-4 mb-4">
+
+  <!-- Final Score -->
+  <div class="col-md-3">
+    <div class="card border-0 h-100">
+      <div class="card-body d-flex flex-column align-items-center justify-content-center py-4 text-center">
+        <div class="score-circle {{ score_class }} mb-3">
+          <span class="score-badge">{{ result.final_score|floatformat:0 }}</span>
+          <span class="score-unit">%</span>
+        </div>
+        <div class="fw-bold mb-1" style="font-size:0.85rem;">Final Score</div>
+        <span class="badge px-3 py-2"
+          style="font-size:0.8rem;
+            {% if result.final_score >= 80 %}background:#d1fae5;color:#065f46;
+            {% elif result.final_score >= 60 %}background:#dbeafe;color:#1e40af;
+            {% elif result.final_score >= 40 %}background:#fef3c7;color:#92400e;
+            {% else %}background:#fee2e2;color:#991b1b;{% endif %}">
+          {{ label }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Breakdown -->
+  <div class="col-md-9">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <h6 class="fw-bold text-uppercase mb-4" style="font-size:0.75rem;letter-spacing:.7px;color:#6b7280;">
+          Score Breakdown
+        </h6>
+
+        {% for label_text, score, color, weight in score_rows %}
+        {% endfor %}
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.85rem;font-weight:600;">
+              Skill Match <span class="text-muted fw-normal" style="font-size:0.78rem;">(40%)</span>
+            </span>
+            <span style="font-size:0.85rem;font-weight:700;">{{ result.skill_match_score|floatformat:1 }}%</span>
+          </div>
+          <div class="progress score-progress">
+            <div class="progress-bar" role="progressbar"
+                 data-value="{{ result.skill_match_score|floatformat:0 }}"
+                 style="width:0%;background:linear-gradient(90deg,#4361ee,#7c3aed);">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.85rem;font-weight:600;">
+              Keyword Match <span class="text-muted fw-normal" style="font-size:0.78rem;">(25%)</span>
+            </span>
+            <span style="font-size:0.85rem;font-weight:700;">{{ result.keyword_match_score|floatformat:1 }}%</span>
+          </div>
+          <div class="progress score-progress">
+            <div class="progress-bar" role="progressbar"
+                 data-value="{{ result.keyword_match_score|floatformat:0 }}"
+                 style="width:0%;background:linear-gradient(90deg,#4cc9f0,#4895ef);">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.85rem;font-weight:600;">
+              Experience Match <span class="text-muted fw-normal" style="font-size:0.78rem;">(20%)</span>
+            </span>
+            <span style="font-size:0.85rem;font-weight:700;">{{ result.experience_score|floatformat:1 }}%</span>
+          </div>
+          <div class="progress score-progress">
+            <div class="progress-bar" role="progressbar"
+                 data-value="{{ result.experience_score|floatformat:0 }}"
+                 style="width:0%;background:linear-gradient(90deg,#f8b400,#f77f00);">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-1">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.85rem;font-weight:600;">
+              Education Match <span class="text-muted fw-normal" style="font-size:0.78rem;">(15%)</span>
+            </span>
+            <span style="font-size:0.85rem;font-weight:700;">{{ result.education_score|floatformat:1 }}%</span>
+          </div>
+          <div class="progress score-progress">
+            <div class="progress-bar" role="progressbar"
+                 data-value="{{ result.education_score|floatformat:0 }}"
+                 style="width:0%;background:linear-gradient(90deg,#2dc653,#06d6a0);">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skills -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          Matched Skills ({{ result.matched_skills|length }})
+        </h6>
+        {% if result.matched_skills %}
+          {% for skill in result.matched_skills %}
+            <span class="skill-pill skill-matched">
+              <i class="bi bi-check2" style="font-size:0.65rem;"></i>{{ skill }}
+            </span>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted small mb-0">No matching skills found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;">
+          <i class="bi bi-x-circle-fill text-danger"></i>
+          Missing Skills ({{ result.missing_skills|length }})
+        </h6>
+        {% if result.missing_skills %}
+          {% for skill in result.missing_skills %}
+            <span class="skill-pill skill-missing">
+              <i class="bi bi-plus" style="font-size:0.65rem;"></i>{{ skill }}
+            </span>
+          {% endfor %}
+        {% else %}
+          <p class="text-success small mb-0">
+            <i class="bi bi-check-circle me-1"></i>All required skills present!
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Keywords -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;">
+          <i class="bi bi-check2-square text-success"></i>
+          Matched Keywords ({{ result.matched_keywords|length }})
+        </h6>
+        {% if result.matched_keywords %}
+          {% for kw in result.matched_keywords %}
+            <span class="skill-pill skill-matched">{{ kw }}</span>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted small mb-0">No matching keywords.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;">
+          <i class="bi bi-exclamation-circle text-warning"></i>
+          Missing Keywords ({{ result.missing_keywords|length }})
+        </h6>
+        {% if result.missing_keywords %}
+          {% for kw in result.missing_keywords %}
+            <span class="skill-pill skill-missing">{{ kw }}</span>
+          {% endfor %}
+        {% else %}
+          <p class="text-success small mb-0">
+            <i class="bi bi-check-circle me-1"></i>All keywords present!
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestions -->
+{% if result.suggestions %}
+<div class="card border-0 mb-4">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;">
+      <i class="bi bi-lightbulb-fill text-warning"></i>
+      Improvement Suggestions
+    </h6>
+    {% for suggestion in result.suggestions %}
+    <div class="suggestion-card">
+      <i class="bi bi-arrow-right-circle-fill text-warning me-2" style="font-size:0.8rem;"></i>
+      {{ suggestion }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Optimise CTA -->
+<div class="card border-0 mb-2" style="background:linear-gradient(135deg,#4361ee 0%,#3a0ca3 100%);">
+  <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h5 class="fw-bold text-white mb-1">Optimise Your Resume</h5>
+      <p class="mb-0 text-white-50 small">
+        Automatically improve your resume with missing skills, a tailored summary,
+        and stronger language. Saved as a new version.
+      </p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="optimize" />
+      <button type="submit" class="btn btn-light fw-semibold px-4"
+              style="color:#4361ee;border-radius:8px;">
+        <i class="bi bi-magic me-2"></i>Optimise Resume
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

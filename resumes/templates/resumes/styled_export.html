@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ resume.title }} — Styled Resume</title>
+  <style>
+    /* ============================================================
+       Styled Resume Export
+       Professional visual layout — for human recruiters
+       Two-tone colour scheme: dark navy header + white body
+       ============================================================ */
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      .print-toolbar { display: none !important; }
+      .resume-wrapper { margin-top: 0 !important; }
+      body { font-size: 10.5pt; }
+      section { page-break-inside: avoid; }
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #1a1d23;
+      background: #f0f4f8;
+      line-height: 1.55;
+    }
+
+    /* --- Print toolbar --- */
+    .print-toolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #1e293b;
+      color: white;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 9999;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+
+    .print-toolbar .toolbar-brand { font-weight: 700; font-size: 0.9rem; }
+    .print-toolbar .toolbar-hint  { font-size: 0.72rem; opacity: 0.7; margin-top: 1px; }
+
+    .print-toolbar button {
+      background: rgba(255,255,255,.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 6px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.15s;
+    }
+
+    .print-toolbar button:hover { background: rgba(255,255,255,.25); }
+
+    .print-toolbar .btn-pdf {
+      background: #4361ee;
+      border-color: #4361ee;
+    }
+
+    .print-toolbar .btn-pdf:hover { background: #3a0ca3; }
+
+    /* --- Page wrapper --- */
+    .resume-wrapper {
+      margin-top: 56px;
+      max-width: 794px;
+      margin-left: auto;
+      margin-right: auto;
+      background: white;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+    }
+
+    @media print {
+      .resume-wrapper {
+        max-width: 100%;
+        box-shadow: none;
+        margin-top: 0;
+      }
+      body { background: white; }
+    }
+
+    /* --- Header band --- */
+    .resume-header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: white;
+      padding: 28px 32px 22px;
+    }
+
+    .resume-name {
+      font-size: 22pt;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .resume-contact {
+      font-size: 9.5pt;
+      opacity: 0.78;
+      margin-bottom: 3px;
+    }
+
+    /* --- Content area --- */
+    .resume-content {
+      padding: 24px 32px 32px;
+    }
+
+    /* --- Section headings --- */
+    .section-title {
+      font-size: 10pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #4361ee;
+      border-left: 3px solid #4361ee;
+      padding-left: 10px;
+      margin: 18px 0 8px;
+    }
+
+    /* --- Section body --- */
+    .section-body {
+      font-size: 10pt;
+      color: #374151;
+      padding-left: 13px;
+    }
+
+    .section-body p {
+      margin-bottom: 3px;
+      line-height: 1.6;
+    }
+
+    .section-body p.bullet {
+      padding-left: 12px;
+      position: relative;
+    }
+
+    .section-body p.bullet::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #4361ee;
+      font-size: 8pt;
+      top: 2px;
+    }
+
+    /* Entry header lines (company / job title) */
+    .entry-line {
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 9px;
+      margin-bottom: 1px;
+      font-size: 10.5pt;
+    }
+
+    /* --- Divider --- */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 4px 0;
+    }
+
+    /* --- Empty state --- */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar — hidden on print -->
+  <div class="print-toolbar">
+    <div>
+      <div class="toolbar-brand">&#127775; Styled Resume Export</div>
+      <div class="toolbar-hint">
+        File &rarr; Print &rarr; Save as PDF &mdash; margins: None, background graphics: On
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-pdf" onclick="window.print()">&#128438; Save as PDF</button>
+      <button onclick="window.close()">&#x2715; Close</button>
+    </div>
+  </div>
+
+  <div class="resume-wrapper">
+
+    {% if sections %}
+
+      {% for heading, lines in sections %}
+
+        {% if heading == 'header' %}
+          <!-- Header band -->
+          <div class="resume-header">
+            {% for line in lines %}
+              {% if line.strip %}
+                {% if forloop.first %}
+                  <div class="resume-name">{{ line.strip }}</div>
+                {% else %}
+                  <div class="resume-contact">{{ line.strip }}</div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="resume-content">
+
+        {% elif heading == 'last' %}
+          </div><!-- close resume-content -->
+
+        {% else %}
+          <!-- Body section -->
+          <section>
+            <div class="section-title">{{ heading }}</div>
+            <div class="section-body">
+              {% for line in lines %}
+                {% with stripped=line.strip %}
+                  {% if stripped %}
+                    {% if stripped|slice:":1" == "-" or stripped|slice:":2" == "* " or stripped|slice:":1" == "•" %}
+                      <p class="bullet">{{ stripped|slice:"2:" }}</p>
+                    {% else %}
+                      <p>{{ stripped }}</p>
+                    {% endif %}
+                  {% endif %}
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+      {% endfor %}
+
+      </div><!-- close resume-content opened in header block -->
+
+    {% else %}
+      <div class="resume-header">
+        <div class="resume-name">{{ resume.title }}</div>
+      </div>
+      <div class="resume-content">
+        <div class="empty-state">
+          No resume content available.<br />
+          Please add content in the Resume Editor first.
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <script>
+    if (window.location.search.indexOf('autoprint=1') !== -1) {
+      setTimeout(function () { window.print(); }, 700);
+    }
+  </script>
+
+</body>
+</html>

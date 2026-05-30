@@ -1,0 +1,181 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+
+    <!-- Brand -->
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+      <span style="background:rgba(255,255,255,.2);border-radius:8px;width:32px;height:32px;
+                   display:inline-flex;align-items:center;justify-content:center;">
+        <i class="bi bi-file-earmark-person-fill" style="font-size:1rem;"></i>
+      </span>
+      ResumeAI
+    </a>
+
+    <!-- Mobile toggle -->
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            style="color:rgba(255,255,255,.8);">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+        {% if user.is_authenticated %}
+
+        <!-- Dashboard -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}"
+             href="{% url 'dashboard:index' %}">
+            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+          </a>
+        </li>
+
+        <!-- Resumes dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if request.resolver_match.namespace == 'resumes' %}active{% endif %}"
+             href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-person me-1"></i>Resumes
+          </a>
+          <ul class="dropdown-menu" style="margin-top:6px;">
+            <li>
+              <a class="dropdown-item" href="{% url 'resumes:upload' %}">
+                <i class="bi bi-upload me-2 text-muted"></i>Upload Resume
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'resumes:list' %}">
+                <i class="bi bi-collection me-2 text-muted"></i>All Resumes
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Jobs dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if request.resolver_match.namespace == 'jobs' %}active{% endif %}"
+             href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-briefcase me-1"></i>Jobs
+          </a>
+          <ul class="dropdown-menu" style="margin-top:6px;">
+            <li>
+              <a class="dropdown-item" href="{% url 'jobs:upload' %}">
+                <i class="bi bi-plus-circle me-2 text-muted"></i>Add Job Description
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'jobs:list' %}">
+                <i class="bi bi-collection me-2 text-muted"></i>All Job Descriptions
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- History -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.namespace == 'analysis' %}active{% endif %}"
+             href="{% url 'analysis:history' %}">
+            <i class="bi bi-clock-history me-1"></i>History
+          </a>
+        </li>
+
+        {% endif %}
+      </ul>
+
+      <!-- Right side -->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-1">
+        {% if user.is_authenticated %}
+
+        <!-- Run Analysis CTA -->
+        <li class="nav-item">
+          <a href="{% url 'analysis:run' %}"
+             class="btn btn-sm me-2"
+             style="background:rgba(255,255,255,.18);color:#fff;
+                    border:1px solid rgba(255,255,255,.3);
+                    border-radius:8px;padding:0.35rem 0.9rem;
+                    font-size:0.82rem;font-weight:600;
+                    transition:background .15s;">
+            <i class="bi bi-play-circle me-1"></i>Run Analysis
+          </a>
+        </li>
+
+        <!-- User dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1"
+             href="#" id="userDropdown" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <span style="width:30px;height:30px;border-radius:50%;
+                         background:rgba(255,255,255,.25);
+                         display:inline-flex;align-items:center;justify-content:center;
+                         font-size:0.85rem;font-weight:700;flex-shrink:0;">
+              {{ user.username|slice:":1"|upper }}
+            </span>
+            <span style="font-size:0.85rem;">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="margin-top:8px;min-width:200px;">
+            <li class="px-3 py-2">
+              <div style="font-size:0.72rem;color:#9ca3af;text-transform:uppercase;
+                          letter-spacing:.5px;font-weight:600;">
+                Signed in as
+              </div>
+              <div style="font-size:0.875rem;font-weight:700;color:#1a1d23;">
+                {{ user.username }}
+              </div>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                <i class="bi bi-person me-2 text-muted"></i>Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'resumes:list' %}">
+                <i class="bi bi-file-earmark-person me-2 text-muted"></i>My Resumes
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'jobs:list' %}">
+                <i class="bi bi-briefcase me-2 text-muted"></i>My Job Descriptions
+              </a>
+            </li>
+            {% if user.is_staff %}
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'admin:index' %}">
+                <i class="bi bi-gear me-2 text-muted"></i>Admin Panel
+              </a>
+            </li>
+            {% endif %}
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+
+        {% else %}
+
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'accounts:login' %}">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+          </a>
+        </li>
+        <li class="nav-item ms-1">
+          <a class="btn btn-sm"
+             href="{% url 'accounts:signup' %}"
+             style="background:#fff;color:#4361ee;border-radius:8px;
+                    padding:0.35rem 0.9rem;font-size:0.82rem;font-weight:700;">
+            Sign up free
+          </a>
+        </li>
+
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+</nav>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ resume.title }} — ATS Resume</title>
+  <style>
+    /* ============================================================
+       ATS-Friendly Resume Export
+       - Single column, no tables, no images, no icons
+       - Arial / Helvetica only — maximum ATS compatibility
+       - Structured section headings with ruled separator
+       - A4 @page margins for direct PDF printing
+       ============================================================ */
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @page {
+      size: A4;
+      margin: 18mm 18mm 18mm 18mm;
+    }
+
+    @media print {
+      .print-toolbar { display: none !important; }
+      .resume-wrapper { margin-top: 0 !important; }
+      body { padding: 0 !important; font-size: 11pt; }
+      section { page-break-inside: avoid; }
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      background: #ffffff;
+      max-width: 794px;
+      margin: 0 auto;
+      padding: 0 20mm;
+      line-height: 1.55;
+    }
+
+    /* --- Print toolbar (hidden on print) --- */
+    .print-toolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+      color: white;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 9999;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 12px rgba(67,97,238,.3);
+    }
+
+    .print-toolbar .toolbar-brand {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.2px;
+    }
+
+    .print-toolbar .toolbar-hint {
+      font-size: 0.75rem;
+      opacity: 0.78;
+      margin-top: 1px;
+    }
+
+    .print-toolbar .toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .print-toolbar button {
+      background: rgba(255,255,255,.92);
+      color: #4361ee;
+      border: none;
+      padding: 6px 20px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.15s;
+    }
+
+    .print-toolbar button:hover { background: #fff; }
+
+    .print-toolbar .btn-close-toolbar {
+      background: rgba(255,255,255,.18);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.3);
+    }
+
+    .print-toolbar .btn-close-toolbar:hover {
+      background: rgba(255,255,255,.28);
+    }
+
+    .resume-wrapper {
+      margin-top: 58px;
+      padding-top: 24px;
+      padding-bottom: 32px;
+    }
+
+    /* --- Name / header --- */
+    .resume-name {
+      font-size: 22pt;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+      color: #111;
+    }
+
+    .resume-contact {
+      font-size: 10pt;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .header-divider {
+      border: none;
+      border-top: 1.5px solid #222;
+      margin: 10px 0 4px;
+    }
+
+    /* --- Section headings --- */
+    .section-title {
+      font-size: 11pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      border-bottom: 1.5px solid #1a1a1a;
+      padding-bottom: 2px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      color: #111;
+    }
+
+    /* --- Section body --- */
+    .section-body {
+      font-size: 10.5pt;
+      color: #222;
+    }
+
+    .section-body p {
+      margin-bottom: 3px;
+      line-height: 1.55;
+    }
+
+    /* Bullet lines */
+    .section-body p.bullet::before {
+      content: '\2022  ';
+      font-weight: bold;
+    }
+
+    /* Entry headers (job title / company lines) */
+    .entry-line {
+      font-weight: bold;
+      margin-top: 7px;
+      margin-bottom: 1px;
+    }
+
+    /* --- Empty state --- */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 10.5pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Print toolbar — hidden on print -->
+  <div class="print-toolbar">
+    <div>
+      <div class="toolbar-brand">&#128438; ATS-Friendly Resume Export</div>
+      <div class="toolbar-hint">
+        File &rarr; Print &rarr; Save as PDF &mdash; set margins to <strong>None</strong> for best results
+      </div>
+    </div>
+    <div class="toolbar-actions">
+      <button onclick="window.print()">Save as PDF</button>
+      <button class="btn-close-toolbar" onclick="window.close()">&#x2715; Close</button>
+    </div>
+  </div>
+
+  <div class="resume-wrapper">
+
+    {% if sections %}
+
+      {% for heading, lines in sections %}
+
+        {% if heading == 'header' %}
+          <!-- Header block: name + contact -->
+          <div class="resume-header">
+            {% for line in lines %}
+              {% if line.strip %}
+                {% if forloop.first %}
+                  <div class="resume-name">{{ line.strip }}</div>
+                {% else %}
+                  <div class="resume-contact">{{ line.strip }}</div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+          <hr class="header-divider" />
+
+        {% else %}
+          <!-- Body section -->
+          <section>
+            <div class="section-title">{{ heading }}</div>
+            <div class="section-body">
+              {% for line in lines %}
+                {% with stripped=line.strip %}
+                  {% if stripped %}
+                    {% if stripped|slice:":1" == "-" or stripped|slice:":2" == "* " or stripped|slice:":1" == "•" %}
+                      <p class="bullet">{{ stripped|slice:"2:" }}</p>
+                    {% else %}
+                      <p>{{ stripped }}</p>
+                    {% endif %}
+                  {% endif %}
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+      {% endfor %}
+
+    {% else %}
+      <div class="empty-state">
+        No resume content available.<br />
+        Please add content in the Resume Editor first.
+      </div>
+    {% endif %}
+
+  </div>
+
+  <script>
+    // Auto-trigger print if ?autoprint=1 is in the URL
+    if (window.location.search.indexOf('autoprint=1') !== -1) {
+      setTimeout(function () { window.print(); }, 700);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% block title %}Edit Resume — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1" style="font-size:1.5rem;">Resume Editor</h2>
+    <p class="text-muted small mb-0">
+      Editing: <strong>{{ resume.title }}</strong> v{{ resume.version }}
+      &mdash; saving creates a new version
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Export dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-success dropdown-toggle" type="button"
+              data-bs-toggle="dropdown">
+        <i class="bi bi-download me-1"></i>Export
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><h6 class="dropdown-header">PDF Formats</h6></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_ats' resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-check me-2 text-success"></i>ATS-Friendly PDF
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_styled' resume.pk %}" target="_blank">
+            <i class="bi bi-file-earmark-richtext me-2 text-primary"></i>Styled PDF
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li><h6 class="dropdown-header">LaTeX / Overleaf</h6></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'resumes:export_latex' resume.pk %}">
+            <i class="bi bi-file-earmark-code me-2 text-warning"></i>Download .tex
+          </a>
+        </li>
+      </ul>
+    </div>
+    <a href="{% url 'resumes:detail' resume.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Editor form -->
+  <div class="col-lg-8">
+    <div class="card border-0">
+      <div class="card-body p-4">
+        <form method="post" novalidate id="editor-form">
+          {% csrf_token %}
+
+          <!-- Role selector -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.role_hint.label }}</label>
+            {{ form.role_hint }}
+            <div class="form-text">Affects export formatting and ATS optimisation.</div>
+          </div>
+
+          <!-- Title + preview -->
+          <div class="mb-3">
+            <label class="form-label">Resume Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+            {% endif %}
+            <div class="mt-2" id="editor-filename-preview" style="display:none;">
+              <span class="text-muted small">Export filename:</span>
+              <span class="filename-preview-badge ms-1" id="editor-preview-text">
+                <i class="bi bi-tag-fill" style="font-size:.65rem;"></i> resume.pdf
+              </span>
+            </div>
+          </div>
+
+          <!-- Content with word count -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label mb-0">Resume Content</label>
+              <span id="word-count" class="text-muted"
+                    style="font-size:0.78rem;background:#f3f4f6;border-radius:12px;padding:2px 10px;">
+                0 words
+              </span>
+            </div>
+            {{ form.raw_text }}
+            {% if form.raw_text.errors %}
+              <div class="text-danger small mt-1">{{ form.raw_text.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary px-4" id="saveBtn">
+              <i class="bi bi-floppy me-2 btn-text"></i>
+              <span class="btn-text">Save as New Version</span>
+              <span class="export-spinner"></span>
+            </button>
+            <a href="{% url 'resumes:detail' resume.pk %}" class="btn btn-outline-secondary">
+              Discard
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+
+    <!-- Export panel -->
+    <div class="card border-0 mb-3">
+      <div class="card-body p-3">
+        <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+          <i class="bi bi-download me-1" style="color:#2dc653;"></i>Export Options
+        </h6>
+        <div class="d-grid gap-2">
+          <a href="{% url 'resumes:export_ats' resume.pk %}" target="_blank"
+             class="btn btn-sm btn-outline-success text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-check" style="font-size:1rem;"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">ATS-Friendly PDF</div>
+              <div style="font-size:0.72rem;opacity:.65;">Best for job applications</div>
+            </div>
+          </a>
+          <a href="{% url 'resumes:export_styled' resume.pk %}" target="_blank"
+             class="btn btn-sm btn-outline-primary text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-richtext" style="font-size:1rem;"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">Styled PDF</div>
+              <div style="font-size:0.72rem;opacity:.65;">Visual professional layout</div>
+            </div>
+          </a>
+          <a href="{% url 'resumes:export_latex' resume.pk %}"
+             class="btn btn-sm btn-outline-warning text-start d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-code" style="font-size:1rem;"></i>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">Download .tex</div>
+              <div style="font-size:0.72rem;opacity:.65;">Overleaf / LaTeX compatible</div>
+            </div>
+          </a>
+        </div>
+        <div class="rounded p-2 mt-2"
+             style="background:#f0f9ff;border:1px solid #bae6fd;font-size:0.75rem;color:#0369a1;">
+          <i class="bi bi-info-circle me-1"></i>
+          PDF: open link → <strong>File → Print → Save as PDF</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Writing tips -->
+    <div class="card border-0 mb-3" style="background:#fffbeb;">
+      <div class="card-body p-3">
+        <h6 class="fw-semibold mb-2" style="font-size:0.82rem;">
+          <i class="bi bi-lightbulb-fill text-warning me-2"></i>Editor Tips
+        </h6>
+        <ul class="small text-muted mb-0 ps-3" style="line-height:1.85;">
+          <li>Use <code>EXPERIENCE</code>, <code>SKILLS</code>, <code>EDUCATION</code> as section headings.</li>
+          <li>Keep between 400–700 words for best ATS results.</li>
+          <li>Include exact tech names: <code>PostgreSQL</code> not just <em>databases</em>.</li>
+          <li>Lead bullet points with action verbs: Built, Designed, Led.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Version info -->
+    <div class="card border-0">
+      <div class="card-body p-3">
+        <h6 class="fw-bold text-uppercase mb-2" style="font-size:0.73rem;letter-spacing:.6px;color:#6b7280;">
+          Current Version
+        </h6>
+        <dl class="small mb-0">
+          <dt class="text-muted">Version</dt>
+          <dd>v{{ resume.version }}</dd>
+          <dt class="text-muted">Words</dt>
+          <dd>{{ resume.word_count }} words</dd>
+          <dt class="text-muted">Last saved</dt>
+          <dd class="mb-0">{{ resume.created_at|date:"M d, Y" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  // Word counter
+  const textarea = document.querySelector('.resume-editor-textarea');
+  const counter  = document.getElementById('word-count');
+  if (textarea && counter) {
+    function updateWordCount() {
+      const n = textarea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+      counter.textContent = n + ' words';
+      counter.style.background = n < 100 ? '#fee2e2' : n > 800 ? '#fef3c7' : '#f3f4f6';
+    }
+    textarea.addEventListener('input', updateWordCount);
+    updateWordCount();
+  }
+
+  // Filename preview
+  const titleInput  = document.getElementById('id_resume_title');
+  const roleSelect  = document.getElementById('id_role_hint');
+  const previewBox  = document.getElementById('editor-filename-preview');
+  const previewText = document.getElementById('editor-preview-text');
+
+  const ROLE_MAP = {
+    '': 'general', 'python': 'python', 'java': 'java',
+    'javascript': 'javascript', 'fullstack': 'fullstack',
+    'datascience': 'datascience', 'dataanalyst': 'dataanalyst',
+    'devops': 'devops', 'cloud': 'cloud', 'backend': 'backend',
+    'frontend': 'frontend', 'mobile': 'mobile', 'general': 'general',
+  };
+
+  function slugify(s) {
+    return s.toLowerCase().replace(/[^\w\s\-]/g, '').replace(/[\s\-]+/g, '_').replace(/^_|_$/g, '').slice(0, 55) || 'resume';
+  }
+
+  function sanitize(n) {
+    return n.replace(/[^\w\s\-.]/g, '').replace(/\s{2,}/g, ' ').trim().slice(0, 60);
+  }
+
+  function updatePreview() {
+    if (!previewBox || !previewText) return;
+    const title = titleInput ? titleInput.value.trim() : '';
+    const role  = roleSelect ? (ROLE_MAP[roleSelect.value] || 'general') : 'general';
+    const icon  = '<i class="bi bi-tag-fill" style="font-size:.65rem;"></i> ';
+    const name  = title ? slugify(sanitize(title)) + '.pdf' : role + 'resume01.pdf';
+    previewText.innerHTML = icon + name;
+    previewBox.style.display = 'block';
+  }
+
+  if (titleInput) titleInput.addEventListener('input', updatePreview);
+  if (roleSelect) roleSelect.addEventListener('change', updatePreview);
+  updatePreview();
+
+  // Save button loading state
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) {
+    document.getElementById('editor-form').addEventListener('submit', function () {
+      saveBtn.classList.add('loading');
+      saveBtn.disabled = true;
+    });
+  }
+})();
+</script>
+{% endblock %}

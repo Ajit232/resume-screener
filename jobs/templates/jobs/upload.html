@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Add Job Description — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <div class="page-header mb-4">
+      <div class="page-header-icon">
+        <i class="bi bi-briefcase-fill"></i>
+      </div>
+      <div>
+        <h2 class="fw-bold mb-0" style="font-size:1.5rem;">Add Job Description</h2>
+        <p class="text-muted small mb-0">Paste or upload a job description to analyse</p>
+      </div>
+    </div>
+
+    <div class="card border-0">
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <!-- Role hint -->
+          <div class="mb-3">
+            <label class="form-label">{{ form.role_hint.label }}</label>
+            {{ form.role_hint }}
+            <div class="form-text">Helps auto-generate a meaningful name for this JD.</div>
+          </div>
+
+          <div class="row mb-3">
+            <!-- Title (optional) -->
+            <div class="col-md-8">
+              <label class="form-label">{{ form.title.label }}</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.title.help_text }}</div>
+              <div class="mt-2" id="jd-name-preview-box" style="display:none;">
+                <span class="text-muted small">Generated name:</span>
+                <span class="filename-preview-badge ms-1" id="jd-name-preview-text">
+                  <i class="bi bi-tag-fill" style="font-size:.65rem;"></i> pythonjd01
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Company</label>
+              {{ form.company }}
+            </div>
+          </div>
+
+          <!-- JD Text -->
+          <div class="mb-3">
+            <label class="form-label">Job Description Text</label>
+            <p class="form-text mb-1">
+              Paste the full text below, or upload a file instead.
+            </p>
+            {{ form.raw_text }}
+            {% if form.raw_text.errors %}
+              <div class="text-danger small mt-1">{{ form.raw_text.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <!-- File upload -->
+          <div class="mb-3">
+            <label class="form-label">Or Upload File (PDF / DOCX)</label>
+            <div class="upload-zone" id="jd-upload-zone">
+              <span class="upload-icon"><i class="bi bi-cloud-upload"></i></span>
+              <p class="mb-1 fw-semibold" style="font-size:0.9rem;">
+                Drag &amp; drop or click to select
+              </p>
+              <span class="upload-filename">No file selected</span>
+              {{ form.file }}
+            </div>
+            {% if form.file.errors %}
+              <div class="text-danger small mt-1">{{ form.file.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Experience Required</label>
+              {{ form.experience_required }}
+              <div class="form-text">Leave blank to auto-detect</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Education Required</label>
+              {{ form.education_required }}
+            </div>
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>
+          {% endif %}
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4" id="saveJdBtn">
+              <i class="bi bi-cpu me-2 btn-text"></i>
+              <span class="btn-text">Save &amp; Parse JD</span>
+              <span class="export-spinner"></span>
+            </button>
+            <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  const titleInput  = document.getElementById('id_jd_title');
+  const roleSelect  = document.getElementById('id_role_hint');
+  const previewBox  = document.getElementById('jd-name-preview-box');
+  const previewText = document.getElementById('jd-name-preview-text');
+
+  const ROLE_MAP = {
+    '': 'general', 'python': 'python', 'java': 'java',
+    'javascript': 'javascript', 'fullstack': 'fullstack',
+    'datascience': 'datascience', 'dataanalyst': 'dataanalyst',
+    'devops': 'devops', 'cloud': 'cloud', 'backend': 'backend',
+    'frontend': 'frontend', 'mobile': 'mobile', 'general': 'general',
+  };
+
+  function sanitize(n) {
+    return n.replace(/[^\w\s\-.]/g, '').replace(/\s{2,}/g, ' ').trim().slice(0, 60);
+  }
+
+  function updatePreview() {
+    if (!previewBox || !previewText) return;
+    const title = titleInput ? titleInput.value.trim() : '';
+    const role  = roleSelect ? (ROLE_MAP[roleSelect.value] || 'general') : 'general';
+    const icon  = '<i class="bi bi-tag-fill" style="font-size:.65rem;"></i> ';
+    previewText.innerHTML = icon + (title ? sanitize(title) : role + 'jd01');
+    previewBox.style.display = 'block';
+  }
+
+  if (titleInput) titleInput.addEventListener('input', updatePreview);
+  if (roleSelect) roleSelect.addEventListener('change', updatePreview);
+  updatePreview();
+
+  // Save button loading
+  const saveJdBtn = document.getElementById('saveJdBtn');
+  if (saveJdBtn) {
+    saveJdBtn.closest('form').addEventListener('submit', function () {
+      saveJdBtn.classList.add('loading');
+      saveJdBtn.disabled = true;
+    });
+  }
+})();
+</script>
+{% endblock %}

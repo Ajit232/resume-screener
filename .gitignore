@@ -1,0 +1,7 @@
+resumeai_env/
+__pycache__/
+*.pyc
+.env
+media/
+staticfiles/
+.vscode/
